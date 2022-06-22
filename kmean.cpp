@@ -90,4 +90,48 @@ void k_means_cluster(vector<Point>*, int epochs, int k) {
             *iter = p;
         }
     }
-}
+    
+    
+     /*
+     Remember, K-Means Clustering relies on iterative update steps, where we reassign cluster points accordingly.
+     Traditionally, by the definition of KMC, we should calculate the centroids by space partitioning, but it's a lot
+     easier to compute the average of the coordinates in the cluster.
+     */
+
+    // make vector to track no. of points per cluster
+    vector<int> num_of_points;
+    // make vector to track coordinate sums
+    vector<int> coord_sum_x, coord_sum_y;
+
+    for (int j=0; j < k; ++j) {
+        num_of_points.push_back(0);
+        coord_sum_x.push_back(0.0);
+        coord_sum_y.push_back(0.0);
+    }
+
+    // iterate through the points, increment right indices based on cluster IDs
+    for (vector<Point>::iterator iter = points->begin(); iter != points->end(); ++iter;) {
+        int cluster_id = iter->cluster;
+        num_of_points[cluster_id] += 1;
+        coord_sum_x[cluster_id] += iter->x;
+        coord_sum_y[cluster_id] += iter->y;
+        // reset distance
+        iter->minimum_distance = __DBL_MAX__;
+    }
+
+    // Calculate new centroids
+    for (vector<Point>::iterator centroid = begin(centroids); centroid != end(centroids); ++c) {
+        int cluster_id = centroid - end(centroids);
+        centroid->x = coord_sum_x[cluster_id] / num_of_points[cluster_id];
+        centroid->y = coord_sum_y[cluster_id] / num_of_points[cluster_id];
+    }
+
+    // now, we need to write to files
+    ofstream my_file;
+    my_file.open("output.csv");
+    my_file << "x, y, cluster" << endl;
+    for (vector<Point>::iterator iter = points->begin(); iter != points->end(); ++iter) {
+        my_file << iter->x << "," << iter->y << "," << iter->cluster << endl;
+    }
+    my_file.close();
+};
